@@ -35,6 +35,7 @@ set(keepassx_SOURCES
     core/Entry.cpp
     core/EntryAttachments.cpp
     core/EntryAttributes.cpp
+    core/FieldParser.cpp
     core/FilePath.cpp
     core/Global.h
     core/Group.cpp
@@ -142,6 +143,7 @@ set(keepassx_MOC
     core/Entry.h
     core/EntryAttachments.h
     core/EntryAttributes.h
+    core/FieldParser.h
     core/Group.h
     core/InactivityTimer.h
     core/Metadata.h

@@ -165,6 +165,9 @@ add_unit_test(NAME testqcommandlineparser SOURCES TestQCommandLineParser.cpp MOC
 add_unit_test(NAME testrandom SOURCES TestRandom.cpp MOCS TestRandom.h
               LIBS ${TEST_LIBRARIES})
 
+add_unit_test(NAME testfieldparser SOURCES TestFieldParser.cpp MOCS TestFieldParser.h
+              LIBS ${TEST_LIBRARIES})
+
 if(WITH_GUI_TESTS)
   add_subdirectory(gui)
 endif(WITH_GUI_TESTS)
