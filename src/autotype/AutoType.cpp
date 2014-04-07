@@ -26,6 +26,7 @@
 #include "core/Config.h"
 #include "core/Database.h"
 #include "core/Entry.h"
+#include "core/FieldParser.h"
 #include "core/FilePath.h"
 #include "core/Group.h"
 #include "core/ListDeleter.h"
@@ -43,6 +44,7 @@ AutoType::AutoType(QObject* parent, bool test)
     , m_plugin(Q_NULLPTR)
     , m_executor(Q_NULLPTR)
     , m_windowFromGlobal(0)
+    , m_fieldParser(new FieldParser(this))
 {
     // prevent crash when the plugin has unresolved symbols
     m_pluginLoader->setLoadHints(QLibrary::ResolveAllSymbolsHint);
@@ -60,6 +62,9 @@ AutoType::AutoType(QObject* parent, bool test)
     if (!pluginPath.isEmpty()) {
         loadPlugin(pluginPath);
     }
+
+    connect(m_fieldParser, SIGNAL(field(QString,int,int)), SLOT(addTemplateAction(QString)));
+    connect(m_fieldParser, SIGNAL(rawString(QString)), SLOT(addRawActions(QString)));
 
     connect(qApp, SIGNAL(aboutToQuit()), SLOT(unloadPlugin()));
 }
@@ -130,10 +135,11 @@ void AutoType::performAutoType(const Entry* entry, QWidget* hideWindow, const QS
         sequence = customSequence;
     }
 
-    QList<AutoTypeAction*> actions;
-    ListDeleter<AutoTypeAction*> actionsDeleter(&actions);
+    m_currentEntry = entry;
 
-    if (!parseActions(sequence, entry, actions)) {
+    ListDeleter<AutoTypeAction*> actionsDeleter(&m_actions);
+
+    if (!m_fieldParser->parse(sequence)) {
         m_inAutoType = false; // TODO: make this automatic
         return;
     }
@@ -148,7 +154,7 @@ void AutoType::performAutoType(const Entry* entry, QWidget* hideWindow, const QS
         window = m_plugin->activeWindow();
     }
 
-    Q_FOREACH (AutoTypeAction* action, actions) {
+    Q_FOREACH (AutoTypeAction* action, m_actions) {
         if (m_plugin->activeWindow() != window) {
             qWarning("Active window changed, interrupting auto-type.");
             break;
@@ -282,41 +288,16 @@ int AutoType::callEventFilter(void* event)
     return m_plugin->platformEventFilter(event);
 }
 
-bool AutoType::parseActions(const QString& sequence, const Entry* entry, QList<AutoTypeAction*>& actions)
+void AutoType::addTemplateAction(const QString& tmpl)
 {
-    QString tmpl;
-    bool inTmpl = false;
+    m_actions.append(createActionFromTemplate(tmpl, m_currentEntry));
+}
 
-    Q_FOREACH (const QChar& ch, sequence) {
-        // TODO: implement support for {{}, {}} and {DELAY=X}
-
-        if (inTmpl) {
-            if (ch == '{') {
-                qWarning("Syntax error in auto-type sequence.");
-                return false;
-            }
-            else if (ch == '}') {
-                actions.append(createActionFromTemplate(tmpl, entry));
-                inTmpl = false;
-                tmpl.clear();
-            }
-            else {
-                tmpl += ch;
-            }
-        }
-        else if (ch == '{') {
-            inTmpl = true;
-        }
-        else if (ch == '}') {
-            qWarning("Syntax error in auto-type sequence.");
-            return false;
-        }
-        else {
-            actions.append(new AutoTypeChar(ch));
-        }
+void AutoType::addRawActions(const QString& str)
+{
+    Q_FOREACH (const QChar& ch, str) {
+        m_actions.append(new AutoTypeChar(ch));
     }
-
-    return true;
 }
 
 QList<AutoTypeAction*> AutoType::createActionFromTemplate(const QString& tmpl, const Entry* entry)

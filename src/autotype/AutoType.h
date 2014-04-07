@@ -29,6 +29,7 @@ class AutoTypeExecutor;
 class AutoTypePlatformInterface;
 class Database;
 class Entry;
+class FieldParser;
 class QPluginLoader;
 
 class AutoType : public QObject
@@ -60,12 +61,13 @@ private Q_SLOTS:
     void performAutoTypeFromGlobal(Entry* entry, const QString& sequence);
     void resetInAutoType();
     void unloadPlugin();
+    void addTemplateAction(const QString& tmpl);
+    void addRawActions(const QString& str);
 
 private:
     explicit AutoType(QObject* parent = Q_NULLPTR, bool test = false);
     ~AutoType();
     void loadPlugin(const QString& pluginPath);
-    bool parseActions(const QString& sequence, const Entry* entry, QList<AutoTypeAction*>& actions);
     QList<AutoTypeAction*> createActionFromTemplate(const QString& tmpl, const Entry* entry);
     QString autoTypeSequence(const Entry* entry, const QString& windowTitle = QString());
     bool windowMatches(const QString& windowTitle, const QString& windowPattern);
@@ -77,6 +79,9 @@ private:
     AutoTypePlatformInterface* m_plugin;
     AutoTypeExecutor* m_executor;
     WId m_windowFromGlobal;
+    FieldParser* m_fieldParser;
+    const Entry* m_currentEntry;
+    QList<AutoTypeAction*> m_actions;
     static AutoType* m_instance;
 
     Q_DISABLE_COPY(AutoType)
