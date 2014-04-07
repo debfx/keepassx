@@ -27,6 +27,7 @@ public:
     inline explicit ListDeleter(QList<T>* list) : m_list(list) {}
     inline ~ListDeleter() {
         qDeleteAll(*m_list);
+        m_list->clear();
     }
 
 private:
