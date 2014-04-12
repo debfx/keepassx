@@ -13,7 +13,8 @@ bool FieldParser::parse(const QString& str)
     for (int pos = 0; pos < str.length(); pos++) {
         if (inField) {
             if (str[pos] == '}') {
-                Q_EMIT field(str.mid(start, pos - start), start, pos - start);
+                // field(): pos and len contain { and }
+                Q_EMIT field(str.mid(start, pos - start), start - 1, pos - start + 2);
                 inField = false;
                 start = pos + 1;
             }

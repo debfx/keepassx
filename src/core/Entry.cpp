@@ -597,18 +597,3 @@ bool Entry::wordMatch(const QString& word, Qt::CaseSensitivity caseSensitivity)
             url().contains(word, caseSensitivity) ||
             notes().contains(word, caseSensitivity);
 }
-
-QString Entry::resolvePlaceholders(const QString& str) const
-{
-    QString result = str;
-
-    result.replace("{TITLE}", title(), Qt::CaseInsensitive);
-    result.replace("{USERNAME}", username(), Qt::CaseInsensitive);
-    result.replace("{URL}", url(), Qt::CaseInsensitive);
-    result.replace("{PASSWORD}", password(), Qt::CaseInsensitive);
-    result.replace("{NOTES}", notes(), Qt::CaseInsensitive);
-
-    // TODO: lots of other placeholders missing
-
-    return result;
-}

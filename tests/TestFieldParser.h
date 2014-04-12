@@ -36,7 +36,7 @@ private Q_SLOTS:
     void testOuterRaw();
     void testEscape();
 
-    void addField(const QString& str);
+    void addField(const QString& str, int pos, int len);
     void addRawString(const QString& str);
 
 private:

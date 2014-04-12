@@ -26,6 +26,7 @@
 #include "core/Config.h"
 #include "core/Database.h"
 #include "core/Entry.h"
+#include "core/EntryPlaceholders.h"
 #include "core/FieldParser.h"
 #include "core/FilePath.h"
 #include "core/Group.h"
@@ -45,6 +46,7 @@ AutoType::AutoType(QObject* parent, bool test)
     , m_executor(Q_NULLPTR)
     , m_windowFromGlobal(0)
     , m_fieldParser(new FieldParser(this))
+    , m_entryPlaceholders(new EntryPlaceholders(this))
 {
     // prevent crash when the plugin has unresolved symbols
     m_pluginLoader->setLoadHints(QLibrary::ResolveAllSymbolsHint);
@@ -451,11 +453,9 @@ QList<AutoTypeAction*> AutoType::createActionFromTemplate(const QString& tmpl, c
 
 
     QString placeholder = QString("{%1}").arg(tmplName);
-    QString resolved = entry->resolvePlaceholders(placeholder);
-    if (placeholder != resolved) {
-        Q_FOREACH (const QChar& ch, resolved) {
-            list.append(new AutoTypeChar(ch));
-        }
+    QString resolved = m_entryPlaceholders->resolvePlaceholders(placeholder, entry);
+    Q_FOREACH (const QChar& ch, resolved) {
+        list.append(new AutoTypeChar(ch));
     }
 
     return list;

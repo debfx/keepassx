@@ -29,6 +29,7 @@ class AutoTypeExecutor;
 class AutoTypePlatformInterface;
 class Database;
 class Entry;
+class EntryPlaceholders;
 class FieldParser;
 class QPluginLoader;
 
@@ -82,6 +83,7 @@ private:
     FieldParser* m_fieldParser;
     const Entry* m_currentEntry;
     QList<AutoTypeAction*> m_actions;
+    EntryPlaceholders* m_entryPlaceholders;
     static AutoType* m_instance;
 
     Q_DISABLE_COPY(AutoType)

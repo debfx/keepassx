@@ -25,7 +25,7 @@
 void TestFieldParser::initTestCase()
 {
     m_fieldParser = new FieldParser(this);
-    connect(m_fieldParser, SIGNAL(field(QString,int,int)), SLOT(addField(QString)));
+    connect(m_fieldParser, SIGNAL(field(QString,int,int)), SLOT(addField(QString,int,int)));
     connect(m_fieldParser, SIGNAL(rawString(QString)), SLOT(addRawString(QString)));
 }
 
@@ -35,8 +35,11 @@ void TestFieldParser::cleanup()
     m_rawStrings.clear();
 }
 
-void TestFieldParser::addField(const QString& str)
+void TestFieldParser::addField(const QString& str, int pos, int len)
 {
+    Q_UNUSED(pos)
+
+    QCOMPARE(str.length(), len - 2);
     m_fields.append(str);
 }
 
