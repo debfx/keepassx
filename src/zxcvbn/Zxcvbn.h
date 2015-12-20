@@ -24,8 +24,11 @@
 
 #include <QStringList>
 
+#include "Match.h"
+
 namespace Zxcvbn {
 
 void passwordStrength(const QString& password, const QStringList& userInputs = QStringList());
+QList<Match> matches(const QString& password);
 
 } // namespace Zxcvbn

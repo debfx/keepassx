@@ -37,6 +37,13 @@ void Zxcvbn::passwordStrength(const QString& password, const QStringList& userIn
         sanitizedUserInputs.append(input.toLower());
     }
 
+    matches(password);
+
+    // TODO: return password strength
+}
+
+QList<Zxcvbn::Match> Zxcvbn::matches(const QString& password)
+{
     QList<Matcher*> matchers({
         new RepeatMatcher(),
         new SequenceMatcher()
@@ -45,8 +52,10 @@ void Zxcvbn::passwordStrength(const QString& password, const QStringList& userIn
     QList<Match> matches;
 
     for (Matcher* matcher : matchers) {
-        matcher->match(password);
+        matches.append(matcher->match(password));
     }
 
     qDeleteAll(matchers);
+
+    return matches;
 }
