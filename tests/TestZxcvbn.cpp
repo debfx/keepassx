@@ -49,9 +49,10 @@ void TestZxcvbn::testRepeatMatching()
         const QList<Zxcvbn::Match> matches = matcher.match(genPw.password);
 
         QCOMPARE(matches.size(), 1);
-        QCOMPARE(matches.at(0).value("baseToken").toString(), QString("&"));
         QCOMPARE(matches.at(0).value("i").toInt(), genPw.i);
         QCOMPARE(matches.at(0).value("j").toInt(), genPw.j);
+        QCOMPARE(matches.at(0).value("token").toString(), pattern);
+        QCOMPARE(matches.at(0).value("baseToken").toString(), QString("&"));
     }
 
     for (int length : {3, 12}) {
@@ -60,10 +61,91 @@ void TestZxcvbn::testRepeatMatching()
             const QList<Zxcvbn::Match> matches = matcher.match(pattern);
 
             QCOMPARE(matches.size(), 1);
-            QCOMPARE(matches.at(0).value("baseToken").toString(), QString(chr));
             QCOMPARE(matches.at(0).value("i").toInt(), 0);
             QCOMPARE(matches.at(0).value("j").toInt(), pattern.size() - 1);
+            QCOMPARE(matches.at(0).value("token").toString(), pattern);
+            QCOMPARE(matches.at(0).value("baseToken").toString(), QString(chr));
         }
+    }
+
+    {
+        const QList<Zxcvbn::Match> matches = matcher.match("BBB1111aaaaa@@@@@@");
+        QCOMPARE(matches.size(), 4);
+
+        QCOMPARE(matches.at(0).value("i").toInt(), 0);
+        QCOMPARE(matches.at(0).value("j").toInt(), 2);
+        QCOMPARE(matches.at(0).value("token").toString(), QString("BBB"));
+        QCOMPARE(matches.at(0).value("baseToken").toString(), QString("B"));
+
+        QCOMPARE(matches.at(1).value("i").toInt(), 3);
+        QCOMPARE(matches.at(1).value("j").toInt(), 6);
+        QCOMPARE(matches.at(1).value("token").toString(), QString("1111"));
+        QCOMPARE(matches.at(1).value("baseToken").toString(), QString("1"));
+
+        QCOMPARE(matches.at(2).value("i").toInt(), 7);
+        QCOMPARE(matches.at(2).value("j").toInt(), 11);
+        QCOMPARE(matches.at(2).value("token").toString(), QString("aaaaa"));
+        QCOMPARE(matches.at(2).value("baseToken").toString(), QString("a"));
+
+        QCOMPARE(matches.at(3).value("i").toInt(), 12);
+        QCOMPARE(matches.at(3).value("j").toInt(), 17);
+        QCOMPARE(matches.at(3).value("token").toString(), QString("@@@@@@"));
+        QCOMPARE(matches.at(3).value("baseToken").toString(), QString("@"));
+    }
+
+    {
+        const QList<Zxcvbn::Match> matches = matcher.match("2818BBBbzsdf1111@*&@!aaaaaEUDA@@@@@@1729");
+        QCOMPARE(matches.size(), 4);
+
+        QCOMPARE(matches.at(0).value("i").toInt(), 4);
+        QCOMPARE(matches.at(0).value("j").toInt(), 6);
+        QCOMPARE(matches.at(0).value("token").toString(), QString("BBB"));
+        QCOMPARE(matches.at(0).value("baseToken").toString(), QString("B"));
+
+        QCOMPARE(matches.at(1).value("i").toInt(), 12);
+        QCOMPARE(matches.at(1).value("j").toInt(), 15);
+        QCOMPARE(matches.at(1).value("token").toString(), QString("1111"));
+        QCOMPARE(matches.at(1).value("baseToken").toString(), QString("1"));
+
+        QCOMPARE(matches.at(2).value("i").toInt(), 21);
+        QCOMPARE(matches.at(2).value("j").toInt(), 25);
+        QCOMPARE(matches.at(2).value("token").toString(), QString("aaaaa"));
+        QCOMPARE(matches.at(2).value("baseToken").toString(), QString("a"));
+
+        QCOMPARE(matches.at(3).value("i").toInt(), 30);
+        QCOMPARE(matches.at(3).value("j").toInt(), 35);
+        QCOMPARE(matches.at(3).value("token").toString(), QString("@@@@@@"));
+        QCOMPARE(matches.at(3).value("baseToken").toString(), QString("@"));
+    }
+
+    {
+        const QList<Zxcvbn::Match> matches = matcher.match("abab");
+        QCOMPARE(matches.size(), 1);
+
+        QCOMPARE(matches.at(0).value("i").toInt(), 0);
+        QCOMPARE(matches.at(0).value("j").toInt(), 3);
+        QCOMPARE(matches.at(0).value("token").toString(), QString("abab"));
+        QCOMPARE(matches.at(0).value("baseToken").toString(), QString("ab"));
+    }
+
+    {
+        const QList<Zxcvbn::Match> matches = matcher.match("aabaab");
+        QCOMPARE(matches.size(), 1);
+
+        QCOMPARE(matches.at(0).value("i").toInt(), 0);
+        QCOMPARE(matches.at(0).value("j").toInt(), 5);
+        QCOMPARE(matches.at(0).value("token").toString(), QString("aabaab"));
+        QCOMPARE(matches.at(0).value("baseToken").toString(), QString("aab"));
+    }
+
+    {
+        const QList<Zxcvbn::Match> matches = matcher.match("abababab");
+        QCOMPARE(matches.size(), 1);
+
+        QCOMPARE(matches.at(0).value("i").toInt(), 0);
+        QCOMPARE(matches.at(0).value("j").toInt(), 7);
+        QCOMPARE(matches.at(0).value("token").toString(), QString("abababab"));
+        QCOMPARE(matches.at(0).value("baseToken").toString(), QString("ab"));
     }
 }
 
