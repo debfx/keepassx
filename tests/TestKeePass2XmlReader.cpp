@@ -408,6 +408,42 @@ void TestKeePass2XmlReader::testEmptyUuids()
     QVERIFY(!reader.hasError());
 }
 
+#include "format/KeePass2XmlWriter.h"
+#include <QBuffer>
+
+void TestKeePass2XmlReader::testInvalidXmlChars()
+{
+    QScopedPointer<Database> dbWrite(new Database());
+
+    Entry* entry = new Entry();
+    entry->setUuid(Uuid::random());
+    entry->setNotes(QString("a %1 b %2 c %3").arg(QChar(0x02)).arg(QChar(0xD800)).arg(QChar(0xFFFE)));
+    for (int i=0; i<entry->notes().size(); i++) {
+        qWarning("org %x", entry->notes()[i].unicode());
+    }
+    entry->setGroup(dbWrite->rootGroup());
+
+    QBuffer buffer;
+    buffer.open(QIODevice::ReadWrite);
+    KeePass2XmlWriter writer;
+    writer.writeDatabase(&buffer, dbWrite.data());
+    buffer.seek(0);
+
+    KeePass2XmlReader reader;
+    reader.setStrictMode(true);
+    QScopedPointer<Database> dbRead(reader.readDatabase(&buffer));
+    if (reader.hasError()) {
+        qWarning("Reader error: %s", qPrintable(reader.errorString()));
+    }
+    QVERIFY(!reader.hasError());
+    QVERIFY(!dbRead.isNull());
+    QCOMPARE(dbRead->rootGroup()->entries().size(), 1);
+    for (int i=0; i<dbRead->rootGroup()->entries().first()->notes().size(); i++) {
+        qWarning("new %x", dbRead->rootGroup()->entries().first()->notes()[i].unicode());
+    }
+    QCOMPARE(dbRead->rootGroup()->entries().first()->notes(), QString("a  b  c "));
+}
+
 void TestKeePass2XmlReader::cleanupTestCase()
 {
     delete m_db;

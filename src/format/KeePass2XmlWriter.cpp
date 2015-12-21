@@ -19,10 +19,105 @@
 
 #include <QBuffer>
 #include <QFile>
+#include <QTextCodec>
 
 #include "core/Metadata.h"
 #include "format/KeePass2RandomStream.h"
 #include "streams/QtIOCompressor"
+
+class XmlTextCodec : public QTextCodec
+{
+public:
+    XmlTextCodec();
+    QByteArray name() const Q_DECL_OVERRIDE;
+    int mibEnum() const Q_DECL_OVERRIDE;
+    static XmlTextCodec* instance();
+
+protected:
+    QByteArray convertFromUnicode(const QChar* chars, int len, QTextCodec::ConverterState* state) const Q_DECL_OVERRIDE;
+    QString convertToUnicode(const char* chars, int len, QTextCodec::ConverterState* state) const Q_DECL_OVERRIDE;
+
+private:
+    QTextCodec* m_utf8Codec;
+    static XmlTextCodec* m_instance;
+};
+
+XmlTextCodec* XmlTextCodec::m_instance(Q_NULLPTR);
+
+XmlTextCodec::XmlTextCodec()
+{
+    m_utf8Codec = QTextCodec::codecForName("UTF-8");
+}
+
+QByteArray XmlTextCodec::name() const
+{
+    // Our name must not overlap with UTF-8 or it may be returned by QTextCodec::codecForName("UTF-8")
+    return QByteArray("UTF-8-XML");
+}
+
+int XmlTextCodec::mibEnum() const
+{
+    // From the "vendor" range, see:
+    // https://www.iana.org/assignments/character-sets/character-sets.xhtml
+    return 2000;
+}
+
+XmlTextCodec* XmlTextCodec::instance()
+{
+    if (!m_instance) {
+        m_instance = new XmlTextCodec();
+    }
+
+    return m_instance;
+}
+
+#include <QQueue>
+
+QByteArray XmlTextCodec::convertFromUnicode(const QChar* chars, int len, QTextCodec::ConverterState* state) const
+{
+    // Qt 4.7.4, 4.6.2 don't have IgnoreHeader set on the first call, which can
+    // result in a BOM being output by utf8Codec.
+    state->flags |= QTextCodec::IgnoreHeader;
+
+    QQueue<int> removeIndexes;
+
+    for (int i = 0; i < len; i++) {
+        const ushort uc = chars[i].unicode();
+
+        if ((uc < 0x20 && uc != 0x09 && uc != 0x0A && uc != 0x0D)
+                || (uc > 0xD7FF && uc < 0xE000)
+                || (uc > 0xFFFD))
+        {
+            removeIndexes.enqueue(i);
+        }
+    }
+
+    if (!removeIndexes.isEmpty()) {
+        QVector<QChar> charsStripped(len - removeIndexes.size());
+
+        int numStripped = 0;
+
+        for (int i = 0; i < len; i++) {
+            if (!removeIndexes.isEmpty() && (i == removeIndexes.head())) {
+                removeIndexes.dequeue();
+                numStripped++;
+            }
+            else {
+                charsStripped[i - numStripped] = chars[i];
+            }
+        }
+
+        return m_utf8Codec->fromUnicode(charsStripped.constData(), charsStripped.size(), state);
+    }
+    else {
+        return m_utf8Codec->fromUnicode(chars, len, state);
+    }
+}
+
+QString XmlTextCodec::convertToUnicode(const char* chars, int len, QTextCodec::ConverterState* state) const
+{
+    return m_utf8Codec->toUnicode(chars, len, state);
+}
 
 KeePass2XmlWriter::KeePass2XmlWriter()
     : m_db(Q_NULLPTR)
@@ -32,6 +127,7 @@ KeePass2XmlWriter::KeePass2XmlWriter()
 {
     m_xml.setAutoFormatting(true);
     m_xml.setAutoFormattingIndent(-1); // 1 tab
+    //m_xml.setCodec(XmlTextCodec::instance());
     m_xml.setCodec("UTF-8");
 }
 
@@ -374,7 +470,7 @@ void KeePass2XmlWriter::writeEntry(const Entry* entry)
         }
 
         if (!value.isEmpty()) {
-            m_xml.writeCharacters(value);
+            m_xml.writeCharacters(stripInvalidXml10Chars(value));
         }
         m_xml.writeEndElement();
 
@@ -445,7 +541,7 @@ void KeePass2XmlWriter::writeString(const QString& qualifiedName, const QString&
         m_xml.writeEmptyElement(qualifiedName);
     }
     else {
-        m_xml.writeTextElement(qualifiedName, string);
+        m_xml.writeTextElement(qualifiedName, stripInvalidXml10Chars(string));
     }
 }
 
@@ -544,6 +640,23 @@ QString KeePass2XmlWriter::colorPartToString(int value)
     QString str = QString::number(value, 16).toUpper();
     if (str.length() == 1) {
         str.prepend("0");
+    }
+
+    return str;
+}
+
+QString KeePass2XmlWriter::stripInvalidXml10Chars(QString str)
+{
+    for (int i = str.size() - 1; i >= 0; i--) {
+        const ushort uc = str.at(i).unicode();
+
+        if ((uc < 0x20 && uc != 0x09 && uc != 0x0A && uc != 0x0D)
+                || (uc > 0xD7FF && uc < 0xE000)
+                || (uc > 0xFFFD))
+        {
+            qWarning("Stripping invalid XML 1.0 codepoint %x", uc);
+            str.remove(i, 1);
+        }
     }
 
     return str;
