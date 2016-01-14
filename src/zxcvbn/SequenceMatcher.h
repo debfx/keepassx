@@ -22,6 +22,9 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef ZXCVBN_SEQUENCEMATCHER_H
+#define ZXCVBN_SEQUENCEMATCHER_H
+
 #include "Matcher.h"
 
 namespace Zxcvbn {
@@ -33,3 +36,5 @@ public:
 };
 
 } // namespace Zxcvbn
+
+#endif // ZXCVBN_SEQUENCEMATCHER_H

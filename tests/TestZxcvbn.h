@@ -40,6 +40,8 @@ class TestZxcvbn : public QObject
 
 private Q_SLOTS:
     void testRepeatMatching();
+    void testSequenceMatching();
+    void testSequenceMatching_data();
 
 private:
     QList<GeneratedPassword> genPws(const QString& pattern, QStringList prefixes, QStringList suffixes);

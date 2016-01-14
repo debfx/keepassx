@@ -40,6 +40,7 @@ QList<Zxcvbn::Match> Zxcvbn::SequenceMatcher::match(const QString& password)
     for (const QPair<QString, QString> s : SEQUENCES) {
         const QString& sequenceName = s.first;
         const QString& sequence = s.second;
+        qWarning("!!!! %s", sequence.toLocal8Bit().constData());
 
         for (int direction : {-1, 1}) {
             int i = 0;
@@ -53,6 +54,7 @@ QList<Zxcvbn::Match> Zxcvbn::SequenceMatcher::match(const QString& password)
                 int sequencePosition = sequence.indexOf(password.at(i));
 
                 while (j < password.size()) {
+                    // mod by sequence length to allow sequences to wrap around: xyzabc
                     int nextSequencePosition = (sequencePosition + direction) % sequence.size();
 
                     if (sequence.indexOf(password.at(j)) != nextSequencePosition) {
@@ -70,7 +72,7 @@ QList<Zxcvbn::Match> Zxcvbn::SequenceMatcher::match(const QString& password)
                         { "sequence", "repeat" },
                         { "i", i },
                         { "j", j },
-                        { "token", password.mid(i, j - i) },
+                        { "token", password.mid(i, j - i + 1) },
                         { "sequenceName", sequenceName },
                         { "sequenceSpace", sequence.size() },
                         { "ascending", (direction == 1) },
@@ -81,6 +83,10 @@ QList<Zxcvbn::Match> Zxcvbn::SequenceMatcher::match(const QString& password)
             }
         }
     }
+
+    std::sort(matches.begin(), matches.end(), [](const Match& a, const Match& b) {
+        return a.value("i") < b.value("i");
+    });
 
     return matches;
 }

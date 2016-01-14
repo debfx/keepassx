@@ -22,6 +22,9 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef ZXCVBN_ZXCVBN_H
+#define ZXCVBN_ZXCVBN_H
+
 #include <QStringList>
 
 #include "Match.h"
@@ -32,3 +35,5 @@ void passwordStrength(const QString& password, const QStringList& userInputs = Q
 QList<Match> matches(const QString& password);
 
 } // namespace Zxcvbn
+
+#endif // ZXCVBN_ZXCVBN_H

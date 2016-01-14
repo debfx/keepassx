@@ -97,73 +97,73 @@ set(testsupport_SOURCES modeltest.cpp FailDevice.cpp)
 add_library(testsupport STATIC ${testsupport_SOURCES})
 target_link_libraries(testsupport Qt5::Core Qt5::Concurrent Qt5::Widgets Qt5::Test)
 
-add_unit_test(NAME testgroup SOURCES TestGroup.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testgroup SOURCES TestGroup.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testkeepass2xmlreader SOURCES TestKeePass2XmlReader.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testkeepass2xmlreader SOURCES TestKeePass2XmlReader.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testkeys SOURCES TestKeys.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testkeys SOURCES TestKeys.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testkeepass2reader SOURCES TestKeePass2Reader.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testkeepass2reader SOURCES TestKeePass2Reader.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testkeepass2writer SOURCES TestKeePass2Writer.cpp
-              LIBS testsupport ${TEST_LIBRARIES})
+#add_unit_test(NAME testkeepass2writer SOURCES TestKeePass2Writer.cpp
+#              LIBS testsupport ${TEST_LIBRARIES})
 
-add_unit_test(NAME testgroupmodel SOURCES TestGroupModel.cpp
-              LIBS testsupport ${TEST_LIBRARIES})
+#add_unit_test(NAME testgroupmodel SOURCES TestGroupModel.cpp
+#              LIBS testsupport ${TEST_LIBRARIES})
 
-add_unit_test(NAME testentrymodel SOURCES TestEntryModel.cpp
-              LIBS testsupport ${TEST_LIBRARIES})
+#add_unit_test(NAME testentrymodel SOURCES TestEntryModel.cpp
+#              LIBS testsupport ${TEST_LIBRARIES})
 
-add_unit_test(NAME testcryptohash SOURCES TestCryptoHash.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testcryptohash SOURCES TestCryptoHash.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testsymmetriccipher SOURCES TestSymmetricCipher.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testsymmetriccipher SOURCES TestSymmetricCipher.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testhashedblockstream SOURCES TestHashedBlockStream.cpp
-              LIBS testsupport ${TEST_LIBRARIES})
+#add_unit_test(NAME testhashedblockstream SOURCES TestHashedBlockStream.cpp
+#              LIBS testsupport ${TEST_LIBRARIES})
 
-add_unit_test(NAME testkeepass2randomstream SOURCES TestKeePass2RandomStream.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testkeepass2randomstream SOURCES TestKeePass2RandomStream.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testmodified SOURCES TestModified.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testmodified SOURCES TestModified.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testdeletedobjects SOURCES TestDeletedObjects.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testdeletedobjects SOURCES TestDeletedObjects.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testkeepass1reader SOURCES TestKeePass1Reader.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testkeepass1reader SOURCES TestKeePass1Reader.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testwildcardmatcher SOURCES TestWildcardMatcher.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testwildcardmatcher SOURCES TestWildcardMatcher.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testautotype SOURCES TestAutoType.cpp
-              LIBS ${TEST_LIBRARIES})
-set_target_properties(testautotype PROPERTIES ENABLE_EXPORTS ON)
+#add_unit_test(NAME testautotype SOURCES TestAutoType.cpp
+#              LIBS ${TEST_LIBRARIES})
+#set_target_properties(testautotype PROPERTIES ENABLE_EXPORTS ON)
 
-add_unit_test(NAME testentry SOURCES TestEntry.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testentry SOURCES TestEntry.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testrandom SOURCES TestRandom.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testrandom SOURCES TestRandom.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testentrysearcher SOURCES TestEntrySearcher.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testentrysearcher SOURCES TestEntrySearcher.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testexporter SOURCES TestExporter.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testexporter SOURCES TestExporter.cpp
+#              LIBS ${TEST_LIBRARIES})
 
-add_unit_test(NAME testcsvexporter SOURCES TestCsvExporter.cpp
-              LIBS ${TEST_LIBRARIES})
+#add_unit_test(NAME testcsvexporter SOURCES TestCsvExporter.cpp
+#              LIBS ${TEST_LIBRARIES})
 
 add_unit_test(NAME zxcvbn SOURCES TestZxcvbn.cpp
               LIBS ${TEST_LIBRARIES})
 
 if(WITH_GUI_TESTS)
-  add_subdirectory(gui)
+  #add_subdirectory(gui)
 endif(WITH_GUI_TESTS)

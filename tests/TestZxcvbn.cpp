@@ -27,6 +27,7 @@
 #include <QTest>
 
 #include "zxcvbn/RepeatMatcher.h"
+#include "zxcvbn/SequenceMatcher.h"
 
 QTEST_GUILESS_MAIN(TestZxcvbn)
 
@@ -146,6 +147,105 @@ void TestZxcvbn::testRepeatMatching()
         QCOMPARE(matches.at(0).value("j").toInt(), 7);
         QCOMPARE(matches.at(0).value("token").toString(), QString("abababab"));
         QCOMPARE(matches.at(0).value("baseToken").toString(), QString("ab"));
+    }
+}
+
+void printMatch(const Zxcvbn::Match& match)
+{
+    for (const QString& key : match.keys()) {
+        qWarning("%s: %s", key.toLocal8Bit().constData(), match.value(key).toString().toLocal8Bit().constData());
+    }
+}
+
+void TestZxcvbn::testSequenceMatching()
+{
+    QFETCH(QString, password);
+    QFETCH(QVariantList, expectedList);
+
+    Zxcvbn::SequenceMatcher matcher;
+    const QList<Zxcvbn::Match> matches = matcher.match(password);
+
+    // redundant, but gives us a better error message
+    if (matches.size() != expectedList.size()) {
+        for (int i = 0; i < matches.size(); i++) {
+            if (i != 0) {
+                qWarning("---");
+            }
+            printMatch(matches[i]);
+        }
+    }
+
+    QCOMPARE(matches.size(), expectedList.size());
+
+    for (int i = 0; i < matches.size(); i++) {
+        QVariantMap expected = expectedList[i].toMap();
+
+        for (const QVariant& keyVariant : expected.keys()) {
+            const QString key = keyVariant.toString();
+
+            // redundant, but gives us a better error message
+            if (!matches[i].contains(key) || (matches[i].value(key) != expected.value(key))) {
+                qWarning("Testing match %d, key '%s':", i, key.toLocal8Bit().constData());
+                printMatch(matches[i]);
+            }
+
+            QVERIFY(matches[i].contains(key));
+            QCOMPARE(matches[i].value(key), expected.value(key));
+        }
+    }
+}
+
+void addRow(const QString& name, const QVariantList& expectedList)
+{
+    QTest::newRow(name.toLocal8Bit().constData()) << name << expectedList;
+}
+
+void TestZxcvbn::testSequenceMatching_data()
+{
+    QTest::addColumn<QString>("password");
+    QTest::addColumn<QVariantList>("expectedList");
+
+    QTest::newRow("") << "" << QVariantList();
+    QTest::newRow("a") << "a" << QVariantList();
+    QTest::newRow("1") << "1" << QVariantList();
+
+    addRow("abcbabc", QVariantList() << QVariantMap({ {"token", "abc"}, {"i", 0}, {"j", 2}, {"ascending", true} })
+                                     << QVariantMap({ {"token", "cba"}, {"i", 2}, {"j", 4}, {"ascending", false} })
+                                     << QVariantMap({ {"token", "abc"}, {"i", 4}, {"j", 6}, {"ascending", true} }));
+
+    QStringList prefixes = { "!", "22" };
+    QStringList suffixes = { "!", "22" };
+    QString pattern = "jihg";
+
+    Q_FOREACH (const GeneratedPassword& genPw, genPws(pattern, prefixes, suffixes)) {
+        addRow(genPw.password,
+               QVariantList() << QVariantMap({ {"token", pattern}, {"i", genPw.i}, {"j", genPw.j}, {"ascending", false}, {"sequenceName", "lower"} }));
+    }
+
+    QList<QVariantList> testData = {
+        {"ABC",   "upper",  true},
+        {"CBA",   "upper",  false},
+        {"PQR",   "upper",  true},
+        {"RQP",   "upper",  false},
+        {"XYZ",   "upper",  true},
+        {"ZYX",   "upper",  false},
+        {"abcd",  "lower",  true},
+        {"dcba",  "lower",  false},
+        {"jihg",  "lower",  false},
+        {"wxyz",  "lower",  true},
+        {"zyxw",  "lower",  false},
+        {"01234", "digits", true},
+        {"43210", "digits", false},
+        {"67890", "digits", true}
+    };
+
+    Q_FOREACH (const QVariantList& expected, testData) {
+        QString pattern = expected.value(0).toString();
+        QString name = expected.value(1).toString();
+        bool isAscending = expected.value(2).toBool();
+
+        addRow(pattern,
+               QVariantList() << QVariantMap({ {"token", pattern}, {"i", 0}, {"j", pattern.size() - 1}, {"ascending", isAscending}, {"sequenceName", name} }));
     }
 }
 

@@ -27,8 +27,13 @@
 #include "gui/MainWindow.h"
 #include "gui/MessageBox.h"
 
+#include "zxcvbn/Zxcvbn.h"
+
 int main(int argc, char** argv)
 {
+    Zxcvbn::passwordStrength("abcbabc");
+    return 0;
+
 #ifdef QT_NO_DEBUG
     Tools::disableCoreDumps();
 #endif

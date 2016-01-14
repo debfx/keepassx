@@ -11,5 +11,5 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if(WITH_TESTS)
-  add_subdirectory(test)
+  #add_subdirectory(test)
 endif()
