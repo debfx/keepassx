@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2012-2015 Dan Wheeler and Dropbox, Inc.
- *  Copyright (C) 2015 Felix Geyer <debfx@fobos.de>
+ *  Copyright (C) 2016 Felix Geyer <debfx@fobos.de>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining
  *  a copy of this software and associated documentation files (the
@@ -22,27 +22,32 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZXCVBN_SEQUENCEMATCHER_H
-#define ZXCVBN_SEQUENCEMATCHER_H
+#ifndef ZXCVBN_DATEMATCHER_H
+#define ZXCVBN_DATEMATCHER_H
 
 #include "Matcher.h"
 
-#include <QList>
-#include <QPair>
+#include <QDate>
+#include <QHash>
 
 namespace Zxcvbn {
 
-class SequenceMatcher : public Matcher
+class DateMatcher : public Matcher
 {
 public:
     QList<Match> match(const QString& password) override;
 
 private:
-    static int mod(int a, int b);
+    static QDate mapIntsToDmy(const QList<int>& ints);
+    static QPair<int,int> mapIntsToDm(int a, int b);
+    static int twoToFourDigitYear(int year);
+    static bool isSubmatch(const Match& match, const QList<Match>& allMatches);
 
-    static const QList<QPair<QString, QString>> SEQUENCES;
+    static const int DATE_MAX_YEAR;
+    static const int DATE_MIN_YEAR;
+    static const QHash<int, QList<QPair<int,int>>> DATE_SPLITS;
 };
 
 } // namespace Zxcvbn
 
-#endif // ZXCVBN_SEQUENCEMATCHER_H
+#endif // ZXCVBN_DATEMATCHER_H

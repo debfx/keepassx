@@ -124,9 +124,11 @@ set(keepassx_SOURCES
     streams/qtiocompressor.cpp
     streams/StoreDataStream.cpp
     streams/SymmetricCipherStream.cpp
+    zxcvbn/DateMatcher.cpp
     zxcvbn/Match.h
     zxcvbn/Matcher.h
     zxcvbn/RepeatMatcher.cpp
+    zxcvbn/RegexMatcher.cpp
     zxcvbn/SequenceMatcher.cpp
     zxcvbn/Zxcvbn.cpp
 )

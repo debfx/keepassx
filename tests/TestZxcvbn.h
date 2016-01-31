@@ -42,8 +42,13 @@ private Q_SLOTS:
     void testRepeatMatching();
     void testSequenceMatching();
     void testSequenceMatching_data();
+    void testRegexMatching();
+    void testRegexMatching_data();
+    void testDateMatching();
+    void testDateMatching_data();
 
 private:
+    void addRow(const QString& name, const QVariantList& expectedList);
     QList<GeneratedPassword> genPws(const QString& pattern, QStringList prefixes, QStringList suffixes);
 };
 

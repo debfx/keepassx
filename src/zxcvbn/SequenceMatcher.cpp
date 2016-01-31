@@ -24,10 +24,9 @@
 
 #include "SequenceMatcher.h"
 
-#include <QList>
-#include <QPair>
 
-static const QList<QPair<QString, QString>> SEQUENCES = {
+
+const QList<QPair<QString, QString>> Zxcvbn::SequenceMatcher::SEQUENCES = {
     { "lower",  "abcdefghijklmnopqrstuvwxyz" },
     { "upper",  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
     { "digits", "0123456789" },
@@ -40,7 +39,6 @@ QList<Zxcvbn::Match> Zxcvbn::SequenceMatcher::match(const QString& password)
     for (const QPair<QString, QString> s : SEQUENCES) {
         const QString& sequenceName = s.first;
         const QString& sequence = s.second;
-        qWarning("!!!! %s", sequence.toLocal8Bit().constData());
 
         for (int direction : {-1, 1}) {
             int i = 0;
@@ -55,7 +53,7 @@ QList<Zxcvbn::Match> Zxcvbn::SequenceMatcher::match(const QString& password)
 
                 while (j < password.size()) {
                     // mod by sequence length to allow sequences to wrap around: xyzabc
-                    int nextSequencePosition = (sequencePosition + direction) % sequence.size();
+                    int nextSequencePosition = mod((sequencePosition + direction), sequence.size());
 
                     if (sequence.indexOf(password.at(j)) != nextSequencePosition) {
                         break;
@@ -89,4 +87,10 @@ QList<Zxcvbn::Match> Zxcvbn::SequenceMatcher::match(const QString& password)
     });
 
     return matches;
+}
+
+int Zxcvbn::SequenceMatcher::mod(int n, int m)
+{
+    // mod impl that works for negative numbers
+    return ((n % m) + m) % m;
 }

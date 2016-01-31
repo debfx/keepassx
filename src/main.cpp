@@ -31,7 +31,7 @@
 
 int main(int argc, char** argv)
 {
-    Zxcvbn::passwordStrength("abcbabc");
+    Zxcvbn::passwordStrength("09876");
     return 0;
 
 #ifdef QT_NO_DEBUG

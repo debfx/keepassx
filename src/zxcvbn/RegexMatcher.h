@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2012-2015 Dan Wheeler and Dropbox, Inc.
- *  Copyright (C) 2015 Felix Geyer <debfx@fobos.de>
+ *  Copyright (C) 2016 Felix Geyer <debfx@fobos.de>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining
  *  a copy of this software and associated documentation files (the
@@ -22,8 +22,8 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZXCVBN_SEQUENCEMATCHER_H
-#define ZXCVBN_SEQUENCEMATCHER_H
+#ifndef ZXCVBN_REGEXMATCHER_H
+#define ZXCVBN_REGEXMATCHER_H
 
 #include "Matcher.h"
 
@@ -32,17 +32,15 @@
 
 namespace Zxcvbn {
 
-class SequenceMatcher : public Matcher
+class RegexMatcher : public Matcher
 {
 public:
     QList<Match> match(const QString& password) override;
 
 private:
-    static int mod(int a, int b);
-
-    static const QList<QPair<QString, QString>> SEQUENCES;
+    static const QList<QPair<QString, QString>> REGEXEN;
 };
 
 } // namespace Zxcvbn
 
-#endif // ZXCVBN_SEQUENCEMATCHER_H
+#endif // ZXCVBN_REGEXMATCHER_H

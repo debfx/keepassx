@@ -26,6 +26,8 @@
 
 #include <QTest>
 
+#include "zxcvbn/DateMatcher.h"
+#include "zxcvbn/RegexMatcher.h"
 #include "zxcvbn/RepeatMatcher.h"
 #include "zxcvbn/SequenceMatcher.h"
 
@@ -195,11 +197,6 @@ void TestZxcvbn::testSequenceMatching()
     }
 }
 
-void addRow(const QString& name, const QVariantList& expectedList)
-{
-    QTest::newRow(name.toLocal8Bit().constData()) << name << expectedList;
-}
-
 void TestZxcvbn::testSequenceMatching_data()
 {
     QTest::addColumn<QString>("password");
@@ -236,7 +233,8 @@ void TestZxcvbn::testSequenceMatching_data()
         {"zyxw",  "lower",  false},
         {"01234", "digits", true},
         {"43210", "digits", false},
-        {"67890", "digits", true}
+        {"67890", "digits", true},
+        {"09876", "digits", false},
     };
 
     Q_FOREACH (const QVariantList& expected, testData) {
@@ -247,6 +245,173 @@ void TestZxcvbn::testSequenceMatching_data()
         addRow(pattern,
                QVariantList() << QVariantMap({ {"token", pattern}, {"i", 0}, {"j", pattern.size() - 1}, {"ascending", isAscending}, {"sequenceName", name} }));
     }
+}
+
+void TestZxcvbn::testRegexMatching()
+{
+    QFETCH(QString, password);
+    QFETCH(QVariantList, expectedList);
+
+    Zxcvbn::RegexMatcher matcher;
+    const QList<Zxcvbn::Match> matches = matcher.match(password);
+
+    // redundant, but gives us a better error message
+    if (matches.size() != expectedList.size()) {
+        for (int i = 0; i < matches.size(); i++) {
+            if (i != 0) {
+                qWarning("---");
+            }
+            printMatch(matches[i]);
+        }
+    }
+
+    QCOMPARE(matches.size(), expectedList.size());
+
+    for (int i = 0; i < matches.size(); i++) {
+        QVariantMap expected = expectedList[i].toMap();
+
+        for (const QVariant& keyVariant : expected.keys()) {
+            const QString key = keyVariant.toString();
+
+            // redundant, but gives us a better error message
+            if (!matches[i].contains(key) || (matches[i].value(key) != expected.value(key))) {
+                qWarning("Testing match %d, key '%s':", i, key.toLocal8Bit().constData());
+                printMatch(matches[i]);
+            }
+
+            QVERIFY(matches[i].contains(key));
+            QCOMPARE(matches[i].value(key), expected.value(key));
+        }
+    }
+}
+
+void TestZxcvbn::testRegexMatching_data()
+{
+    QTest::addColumn<QString>("password");
+    QTest::addColumn<QVariantList>("expectedList");
+
+    addRow("1922", QVariantList() << QVariantMap({ {"token", "1922"}, {"i", 0}, {"j", 3}, {"regexName", "recent_year"} }));
+    addRow("2017", QVariantList() << QVariantMap({ {"token", "2017"}, {"i", 0}, {"j", 3}, {"regexName", "recent_year"} }));
+}
+
+void TestZxcvbn::testDateMatching()
+{
+    QFETCH(QString, password);
+    QFETCH(QVariantList, expectedList);
+
+    Zxcvbn::DateMatcher matcher;
+    const QList<Zxcvbn::Match> matches = matcher.match(password);
+
+    // redundant, but gives us a better error message
+    if (matches.size() != expectedList.size()) {
+        for (int i = 0; i < matches.size(); i++) {
+            if (i != 0) {
+                qWarning("---");
+            }
+            printMatch(matches[i]);
+        }
+    }
+
+    QCOMPARE(matches.size(), expectedList.size());
+
+    for (int i = 0; i < matches.size(); i++) {
+        QVariantMap expected = expectedList[i].toMap();
+
+        for (const QVariant& keyVariant : expected.keys()) {
+            const QString key = keyVariant.toString();
+
+            // redundant, but gives us a better error message
+            if (!matches[i].contains(key) || (matches[i].value(key) != expected.value(key))) {
+                qWarning("Testing match %d, key '%s':", i, key.toLocal8Bit().constData());
+                printMatch(matches[i]);
+            }
+
+            QVERIFY(matches[i].contains(key));
+            QCOMPARE(matches[i].value(key), expected.value(key));
+        }
+    }
+}
+
+void TestZxcvbn::testDateMatching_data()
+{
+    QTest::addColumn<QString>("password");
+    QTest::addColumn<QVariantList>("expectedList");
+
+    QStringList separators = { "", " ", "-", "/", "\\", "_", "." };
+    for (const QString& sep : separators) {
+        QString password = QString("13#{sep}2#{sep}1921").replace("#{sep}", sep);
+        addRow(password, QVariantList() << QVariantMap({ {"token", password}, {"i", 0}, {"j", password.size() - 1},
+                                                         {"separator", sep},
+                                                         {"year", 1921}, {"month", 2}, {"day", 13} }));
+    }
+
+    QStringList orderList = { "mdy", "dmy", "ymd", "ydm" };
+    for (const QString& order : orderList) {
+        QString d = "8";
+        QString m = "8";
+        QString y = "88";
+        QString password = QString(order).replace("d", d).replace("m", m).replace("y", y);
+        addRow(password, QVariantList() << QVariantMap({ {"token", password}, {"i", 0}, {"j", password.size() - 1},
+                                                         {"separator", ""},
+                                                         {"year", 1988}, {"month", 8}, {"day", 8} }));
+    }
+
+    // matches the date with year closest to REFERENCE_YEAR when ambiguous
+    QString password = "111504";
+    addRow(password, QVariantList() << QVariantMap({ {"token", password}, {"i", 0}, {"j", password.size() - 1},
+                                                     {"separator", ""},
+                                                     {"year", 2004}, {"month", 11}, {"day", 15} }));
+
+    QList<QList<int>> dmy = {
+        {1,  1,  1999},
+        {11, 8,  2000},
+        {9,  12, 2005},
+        {22, 11, 1551},
+    };
+
+    for (const QList<int>& date : dmy) {
+        QString password;
+
+        password = QString("%1%2%3").arg(date[0]).arg(date[1]).arg(date[2]);
+        addRow(password, QVariantList() << QVariantMap({ {"token", password}, {"i", 0}, {"j", password.size() - 1},
+                                                         {"separator", ""}, {"year", date[2]} }));
+
+        password = QString("%1.%2.%3").arg(date[0]).arg(date[1]).arg(date[2]);
+        addRow(password, QVariantList() << QVariantMap({ {"token", password}, {"i", 0}, {"j", password.size() - 1},
+                                                         {"separator", "."}, {"year", date[2]} }));
+    }
+
+    password = "02/02/02";
+    addRow(password, QVariantList() << QVariantMap({ {"token", password}, {"i", 0}, {"j", password.size() - 1},
+                                                     {"separator", "/"},
+                                                     {"year", 2002}, {"month", 2}, {"day", 2} }));
+
+    QStringList prefixes = { "a", "ab" };
+    QStringList suffixes = { "!" };
+    QString pattern = "1/1/91";
+
+    Q_FOREACH (const GeneratedPassword& genPw, genPws(pattern, prefixes, suffixes)) {
+        addRow(genPw.password, QVariantList() << QVariantMap({ {"token", pattern}, {"i", genPw.i}, {"j", genPw.j},
+                                                               {"year", 1991}, {"month", 1}, {"day", 1} }));
+    }
+
+    password = "12/20/1991.12.20";
+    addRow(password, QVariantList() << QVariantMap({ {"token", "12/20/1991"}, {"i", 0}, {"j", 9},
+                                                     {"separator", "/"},
+                                                     {"year", 1991}, {"month", 12}, {"day", 20} })
+                                    << QVariantMap({ {"token", "1991.12.20"}, {"i", 6}, {"j", 15},
+                                                     {"separator", "."},
+                                                     {"year", 1991}, {"month", 12}, {"day", 20} }));
+
+    password = "912/20/919";
+    addRow(password, QVariantList() << QVariantMap({ {"token", "12/20/91"}, {"i", 1}, {"j", 8},
+                                                     {"separator", "/"},
+                                                     {"year", 1991}, {"month", 12}, {"day", 20} }));
+}
+
+void TestZxcvbn::addRow(const QString& name, const QVariantList& expectedList)
+{
+    QTest::newRow(name.toLocal8Bit().constData()) << name << expectedList;
 }
 
 QList<GeneratedPassword> TestZxcvbn::genPws(const QString& pattern, QStringList prefixes, QStringList suffixes)

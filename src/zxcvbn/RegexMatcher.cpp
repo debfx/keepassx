@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2012-2015 Dan Wheeler and Dropbox, Inc.
- *  Copyright (C) 2015 Felix Geyer <debfx@fobos.de>
+ *  Copyright (C) 2016 Felix Geyer <debfx@fobos.de>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining
  *  a copy of this software and associated documentation files (the
@@ -22,27 +22,36 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZXCVBN_SEQUENCEMATCHER_H
-#define ZXCVBN_SEQUENCEMATCHER_H
+#include "RegexMatcher.h"
 
-#include "Matcher.h"
+#include <QRegularExpression>
 
-#include <QList>
-#include <QPair>
-
-namespace Zxcvbn {
-
-class SequenceMatcher : public Matcher
-{
-public:
-    QList<Match> match(const QString& password) override;
-
-private:
-    static int mod(int a, int b);
-
-    static const QList<QPair<QString, QString>> SEQUENCES;
+const QList<QPair<QString, QString>> Zxcvbn::RegexMatcher::REGEXEN = {
+    { "recent_year",  "19\\d\\d|200\\d|201\\d" },
 };
 
-} // namespace Zxcvbn
+QList<Zxcvbn::Match> Zxcvbn::RegexMatcher::match(const QString& password)
+{
+    QList<Match> matches;
 
-#endif // ZXCVBN_SEQUENCEMATCHER_H
+    for (const QPair<QString, QString> s : REGEXEN) {
+        const QString& name = s.first;
+        QRegularExpression regex = QRegularExpression(s.second);
+
+        QRegularExpressionMatchIterator i = regex.globalMatch(password);
+
+        while (i.hasNext()) {
+            QRegularExpressionMatch match = i.next();
+
+            matches.append({
+                { "pattern", "regex" },
+                { "i", match.capturedStart(0) },
+                { "j", match.capturedEnd(0) - 1 },
+                { "token", match.captured(0) },
+                { "regexName", name },
+            });
+        }
+    }
+
+    return matches;
+}
